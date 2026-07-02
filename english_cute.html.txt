@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 英语小花闯关 · 译林版七上</title>
+    <style>
+        /* 可爱风 CSS */
+        :root {
+            --bg-light: #fff0f5;
+            --card-bg: #ffe4e1;
+            --primary: #ff69b4;
+            --secondary: #87ceeb;
+            --success: #98fb98;
+            --danger: #ff6b6b;
+            --gold: #ffd700;
+            --shadow: 0 8px 16px rgba(255, 105, 180, 0.2);
+        }
+        body {
+            background-color: var(--bg-light);
+            color: #4a4a4a;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Patrick Hand', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle, #ffe4e1 0%, #fff0f5 100%);
+        }
+        #app {
+            width: 95%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(6px);
+            padding: 2rem;
+            border-radius: 40px;
+            box-shadow: 0 12px 30px rgba(255, 182, 193, 0.5);
+            border: 2px solid #fff;
+            position: relative;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            text-shadow: 1px 1px 0 #fff;
+            color: #d87093;
+        }
+        h1 { font-size: 2.4rem; letter-spacing: 2px; margin-top: 0; }
+        .screen { display: none; }
+        .active-screen { display: block; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ffb6c1, var(--primary));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #c71585;
+            width: 100%;
+            margin-top: 15px;
+            font-family: inherit;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        .btn-secondary { background: linear-gradient(135deg, #98fb98, #32cd32); box-shadow: 0 4px 0 #228b22; }
+        .btn-gold { background: linear-gradient(135deg, #ffeb3b, var(--gold)); color: #555; box-shadow: 0 4px 0 #daa520; }
+        .btn-small { padding: 8px 16px; font-size: 0.9rem; width: auto; }
+        .btn-unmastered { 
+            background: #ff6b6b; 
+            box-shadow: 0 4px 0 #8b0000; 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            width: auto; 
+            z-index: 1000; 
+            border-radius: 30px;
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; margin-top: 20px; }
+        .unit-card {
+            background: #fff;
+            padding: 20px 10px;
+            border-radius: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid #ffe4e1;
+            box-shadow: var(--shadow);
+        }
+        .unit-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 12px 20px rgba(255,105,180,0.3); }
+        .unit-card .icon { font-size: 2rem; }
+        .locked { opacity: 0.6; pointer-events: none; filter: grayscale(0.5); }
+        .game-box { background: #fff; padding: 20px; border-radius: 30px; margin: 20px 0; border: 2px solid #ffb6c1; box-shadow: inset 0 0 0 2px #fff, var(--shadow);}
+        
+        .input-area { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
+        input[type="text"] {
+            width: 85%;
+            padding: 15px;
+            border-radius: 40px;
+            border: 2px solid #ffb6c1;
+            background: #fafafa;
+            color: #333;
+            font-size: 1.4rem;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+        }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(255,105,180,0.5); }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-btn {
+            background: #f0f8ff;
+            border: 1px solid #ffb6c1;
+            color: #333;
+            padding: 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .option-btn:hover { background: var(--secondary); border-color: var(--primary); }
+        .option-btn.correct { background: var(--success); border-color: #2e8b57; color: white; }
+        .option-btn.wrong { background: var(--danger); border-color: #8b0000; color: white; }
+        
+        .progress-bar { width: 100%; height: 10px; background: #ffb6c1; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ffb6c1, #ff1493); width: 0%; transition: width 0.5s; }
+        .status-area { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #777; margin-bottom: 10px; }
+        .score-text { color: var(--primary); font-weight: bold; }
+
+        /* 未掌握通知 */
+        #review-notification {
+            background: var(--gold); padding: 12px; border-radius: 40px; text-align: center; margin: 15px 0; display: none;
+            animation: softShake 0.6s; color: #333; font-weight: bold;
+        }
+        @keyframes softShake {
+            0% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 50% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); } 100% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 可爱标题 -->
+    <h1>🌸 英语 <span style="color: #ff69b4;">小</span>花 <span style="color: #ffa500;">闯</span>关 🌈</h1>
+    
+    <!-- 首页 -->
+    <div id="screen-menu" class="screen active-screen">
+        <div style="text-align: center; margin: 20px 0; background: #f0f8ff; padding: 15px; border-radius: 40px;">
+            <span style="font-size: 3rem;">📘</span><br>
+            <p style="font-weight: bold;">译林版 · 七年级上册 (2024秋)</p>
+            <p style="font-size: 0.8rem; color: #888;">✅ 内置艾宾浩斯复习机制，错题自动收录</p>
+        </div>
+        <button class="btn" onclick="showScreen('screen-units')">✨ 开始过关斩将</button>
+        <button class="btn btn-secondary" onclick="startReview()" style="margin-top: 10px;">📝 复习我的「未掌握」单词</button>
+        <div style="margin-top: 20px; font-size: 0.9rem; text-align: center; background: #ffe4e1; border-radius: 20px; padding: 5px;">
+            🎯 每单元3个级别：认读拼写 ➡ 词性 ➡ 中文释义
+        </div>
+    </div>
+
+    <!-- 单元选择 -->
+    <div id="screen-units" class="screen">
+        <button class="btn btn-secondary btn-small" onclick="showScreen('screen-menu')" style="width: auto; margin-bottom: 10px;">⬅ 回主页</button>
+        <h2>📚 选择单元</h2>
+        <div class="grid" id="unit-grid"></div>
+    </div>
+
+    <!-- 级别选择 -->
+    <div id="screen-levels" class="screen">
+        <button class="btn btn-secondary btn-small" onclick="showScreen('screen-units')" style="width: auto; margin-bottom: 10px;">⬅ 回单元</button>
+        <h2 id="level-unit-title" style="color: #ff69b4;">Unit X</h2>
+        <p style="text-align: center; color: #666;" id="level-word-count"></p>
+        <div class="grid" id="level-grid"></div>
+    </div>
+
+    <!-- 游戏面板 -->
+    <div id="screen-game" class="screen">
+        <div id="review-notification">📕 你有未掌握的单词哦！答对会自动从复习清单中移除！</div>
+        <div class="status-area">
+            <span id="game-progress-text">1 / 15</span>
+            <span class="score-text" id="game-score-text">✅ 0</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="game-progress-fill"></div></div>
+        
+        <div id="game-question" class="game-box">
+            <h3 id="game-heading" style="margin-top: 0; color: #333;">级别</h3>
+            <p id="game-instruction" style="color: #666; font-size: 0.9rem;">答题说明</p>
+            <div id="game-content" style="margin-top: 20px;"></div>
+        </div>
+        <div class="btn" onclick="submitAnswer()">🌟 提交 / 下一题</div>
+        
+        <!-- 未掌握按钮 -->
+        <button class="btn btn-unmastered" onclick="markUnmastered()" id="btn-unmastered">🚩 未掌握</button>
+        
+        <div id="game-result" style="display: none; text-align: center; padding: 15px; margin-top: 20px; background: #fff; border-radius: 30px;"></div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // 1. 数据层：来自“译林七年级上词汇表.xlsx”
+    // ==========================================
+    // 注：此处已经将用户提供的Excel逐行解析为JS数组。
+    const db = {
+        units: {
+            1: {
+                name: "This is me!",
+                words: [
+                    { word: "greet", pos: "vt.", meaning: "和（某人）打招呼（或问好）" },
+                    { word: "introduce", pos: "vt.", meaning: "介绍" },
+                    { word: "each other", pos: "pron.", meaning: "互相" },
+                    { word: "go by", pos: "-", meaning: "叫作，被称为" },
+                    { word: "glad", pos: "adj.", meaning: "高兴" },
+                    { word: "same", pos: "adj.", meaning: "同一的，相同的" },
+                    { word: "hobby", pos: "n.", meaning: "业余爱好" },
+                    { word: "grade", pos: "n.", meaning: "年级；等级" },
+                    { word: "classmate", pos: "n.", meaning: "同班同学" },
+                    { word: "friendly", pos: "adj.", meaning: "友好的" },
+                    { word: "full", pos: "adj.", meaning: "(有)大量的；满的" },
+                    { word: "be full of", pos: "-", meaning: "满是…的" },
+                    { word: "energy", pos: "n.", meaning: "精力，活力" },
+                    { word: "be good at", pos: "-", meaning: "擅长…" },
+                    { word: "slim", pos: "adj.", meaning: "苗条的" },
+                    { word: "polite", pos: "adj.", meaning: "有礼貌的" },
+                    { word: "smart", pos: "adj.", meaning: "聪明的；智能的" },
+                    { word: "ready", pos: "adj.", meaning: "愿意迅速做某事；准备好" },
+                    { word: "be ready to do sth", pos: "-", meaning: "愿意（或准备好）做某事" },
+                    { word: "other", pos: "pron. & adj.", meaning: "另外，其他" },
+                    { word: "interested", pos: "adj.", meaning: "感兴趣的" },
+                    { word: "be interested in", pos: "-", meaning: "对…感兴趣" },
+                    { word: "looks", pos: "n. [pl.]", meaning: "相貌，容貌" },
+                    { word: "character", pos: "n.", meaning: "性格" },
+                    { word: "both", pos: "pron. & det.", meaning: "两个都" },
+                    { word: "enjoy", pos: "vt.", meaning: "享受…的乐趣，欣赏，喜爱" },
+                    { word: "pretty", pos: "adj.", meaning: "漂亮的，标致的" },
+                    { word: "shy", pos: "adj.", meaning: "腼腆的" },
+                    { word: "only", pos: "adv.", meaning: "只有，仅" },
+                    { word: "stay", pos: "linking v.", meaning: "保持，继续是" },
+                    { word: "match", pos: "n.", meaning: "比赛" },
+                    { word: "luck", pos: "n.", meaning: "幸运，好运" },
+                    { word: "good luck", pos: "-", meaning: "祝成功，祝好运" },
+                    { word: "chess", pos: "n.", meaning: "国际象棋" },
+                    { word: "Chinese chess", pos: "n.", meaning: "中国象棋" },
+                    { word: "problem", pos: "n.", meaning: "数学题；难题，困难" },
+                    { word: "weekend", pos: "n.", meaning: "周末" },
+                    { word: "at the weekend", pos: "-", meaning: "在周末" },
+                    { word: "fun", pos: "adj.", meaning: "有趣的，使人快乐的" },
+                    { word: "make friends with", pos: "-", meaning: "与…交朋友" }
+                ]
+            },
+            2: {
+                name: "Hobbies",
+                words: [
+                    { word: "jogging", pos: "n.", meaning: "慢跑（尤指锻炼）" },
+                    { word: "painting", pos: "n.", meaning: "绘画；画作" },
+                    { word: "paper-cutting", pos: "n.", meaning: "剪纸" },
+                    { word: "all kinds of", pos: "-", meaning: "各种各样的" },
+                    { word: "fit", pos: "adj.", meaning: "健康的" },
+                    { word: "around", pos: "prep.", meaning: "围绕，环绕" },
+                    { word: "change", pos: "vt.", meaning: "使不同，使变换" },
+                    { word: "change", pos: "vi.", meaning: "改变，变化" },
+                    { word: "life", pos: "n. (pl. lives)", meaning: "个人生活；生命" },
+                    { word: "museum", pos: "n.", meaning: "博物馆" },
+                    { word: "thing", pos: "n.", meaning: "东西；事件" },
+                    { word: "fun", pos: "n.", meaning: "开心，乐趣，好玩的事" },
+                    { word: "apart", pos: "adv.", meaning: "分开" },
+                    { word: "take ... apart", pos: "-", meaning: "拆卸，拆开（机器等）" },
+                    { word: "fix", pos: "vt.", meaning: "修理；安装" },
+                    { word: "endless", pos: "adj.", meaning: "无穷无尽的，不计其数的" },
+                    { word: "scientist", pos: "n.", meaning: "科学家" },
+                    { word: "dream", pos: "n.", meaning: "梦想；梦" },
+                    { word: "true", pos: "adj.", meaning: "真正的，实质的；确实的" },
+                    { word: "come true", pos: "-", meaning: "实现，成为现实" },
+                    { word: "paint", pos: "vi. & vt.", meaning: "用颜料画" },
+                    { word: "paint", pos: "vt.", meaning: "在…上刷油漆" },
+                    { word: "club", pos: "n.", meaning: "社团，俱乐部" },
+                    { word: "member", pos: "n.", meaning: "成员" },
+                    { word: "geography", pos: "n.", meaning: "地理（学）" },
+                    { word: "p.m.", pos: "abbr.", meaning: "下午" },
+                    { word: "volleyball", pos: "n.", meaning: "排球运动" },
+                    { word: "each", pos: "det., pron. & adv.", meaning: "每个，各自" },
+                    { word: "once", pos: "adv.", meaning: "一次" },
+                    { word: "join", pos: "vt. & vi.", meaning: "加入" },
+                    { word: "join", pos: "vt.", meaning: "与…一道去" },
+                    { word: "meeting", pos: "n.", meaning: "集合，会面；会议" },
+                    { word: "sound", pos: "linking v.", meaning: "听起来好像" },
+                    { word: "plan", pos: "vt. & vi.", meaning: "打算；计划" },
+                    { word: "questionnaire", pos: "n.", meaning: "调查表，问卷" },
+                    { word: "role", pos: "n.", meaning: "角色" },
+                    { word: "model", pos: "n.", meaning: "模范，典型；模特儿" },
+                    { word: "role model", pos: "n.", meaning: "楷模，行为榜样" },
+                    { word: "design", pos: "vt.", meaning: "设计" },
+                    { word: "skill", pos: "n.", meaning: "技能；技艺" },
+                    { word: "artist", pos: "n.", meaning: "艺术家，（尤指）画家" },
+                    { word: "master", pos: "n.", meaning: "能手；大师；师父" },
+                    { word: "work", pos: "n.", meaning: "作品，著作" },
+                    { word: "become", pos: "linking v.", meaning: "成为，开始变得" },
+                    { word: "designer", pos: "n.", meaning: "设计师" },
+                    { word: "would", pos: "modal v.", meaning: "想（表示愿意等）" },
+                    { word: "would like", pos: "-", meaning: "愿意，想要" },
+                    { word: "future", pos: "n.", meaning: "未来" },
+                    { word: "in the future", pos: "-", meaning: "在未来" },
+                    { word: "hope", pos: "vt. & vi.", meaning: "希望" }
+                ]
+            },
+            3: {
+                name: "Welcome to our school!",
+                words: [
+                    { word: "gym", pos: "n.", meaning: "体育馆" },
+                    { word: "building", pos: "n.", meaning: "楼房，建筑物" },
+                    { word: "field", pos: "n.", meaning: "运动场" },
+                    { word: "sports field", pos: "n.", meaning: "体育场" },
+                    { word: "dining", pos: "n.", meaning: "吃饭" },
+                    { word: "hall", pos: "n.", meaning: "大厅，礼堂" },
+                    { word: "dining hall", pos: "n.", meaning: "食堂，餐厅" },
+                    { word: "lab", pos: "n.", meaning: "实验室" },
+                    { word: "part", pos: "n.", meaning: "部分" },
+                    { word: "modern", pos: "adj.", meaning: "现代(化)的，先进的" },
+                    { word: "as well", pos: "-", meaning: "也" },
+                    { word: "bright", pos: "adj.", meaning: "明亮的" },
+                    { word: "everyone", pos: "pron.", meaning: "所有人，每人，人人" },
+                    { word: "perfect", pos: "adj.", meaning: "完美的" },
+                    { word: "spend", pos: "vt.", meaning: "度过，花（时间）" },
+                    { word: "spend", pos: "vt. & vi.", meaning: "花（钱）" },
+                    { word: "chat", pos: "vi.", meaning: "闲聊" },
+                    { word: "exciting", pos: "adj.", meaning: "令人激动的" },
+                    { word: "take place", pos: "-", meaning: "进行，发生" },
+                    { word: "noticeboard", pos: "n.", meaning: "布告板，告示牌" },
+                    { word: "gate", pos: "n.", meaning: "大门" },
+                    { word: "news", pos: "n.", meaning: "新闻；消息" },
+                    { word: "board", pos: "n.", meaning: "布告牌；木板" },
+                    { word: "like", pos: "prep.", meaning: "例如；像" },
+                    { word: "more", pos: "det. & pron.", meaning: "更多的，更大的" },
+                    { word: "more", pos: "adv.", meaning: "更；更多" },
+                    { word: "trust", pos: "vt.", meaning: "相信" },
+                    { word: "really", pos: "adv.", meaning: "很，十分；真正地" },
+                    { word: "soon", pos: "adv.", meaning: "很快，马上" },
+                    { word: "teach", pos: "vt. & vi.", meaning: "教（课程），讲授" },
+                    { word: "team", pos: "n.", meaning: "队；组" },
+                    { word: "form teacher", pos: "n.", meaning: "班主任" },
+                    { word: "show", pos: "n.", meaning: "演出；展览；节目；音乐会" },
+                    { word: "grey", pos: "adj.", meaning: "灰色的" },
+                    { word: "grey", pos: "n.", meaning: "灰色" },
+                    { word: "different", pos: "adj.", meaning: "不同的" },
+                    { word: "thousand", pos: "num.", meaning: "一千" },
+                    { word: "fact", pos: "n.", meaning: "事实" },
+                    { word: "in fact", pos: "-", meaning: "确切地说；事实上" },
+                    { word: "borrow", pos: "vt.", meaning: "借" },
+                    { word: "newspaper", pos: "n.", meaning: "报纸" },
+                    { word: "magazine", pos: "n.", meaning: "杂志" },
+                    { word: "else", pos: "adv.", meaning: "其他的，别的" },
+                    { word: "care", pos: "vi.", meaning: "关心" },
+                    { word: "care about", pos: "-", meaning: "关心" },
+                    { word: "event", pos: "n.", meaning: "公开活动；发生的事情" },
+                    { word: "together", pos: "adv.", meaning: "在一起，共同" },
+                    { word: "quite", pos: "adv.", meaning: "相当；非常" },
+                    { word: "large", pos: "adj.", meaning: "大的" },
+                    { word: "special", pos: "adj.", meaning: "特殊的，特别的" }
+                ]
+            },
+            4: {
+                name: "School days",
+                words: [
+                    { word: "a.m.", pos: "abbr.", meaning: "上午" },
+                    { word: "get up", pos: "-", meaning: "起床" },
+                    { word: "activity", pos: "n.", meaning: "活动" },
+                    { word: "housework", pos: "n.", meaning: "家务劳动，家务事" },
+                    { word: "homework", pos: "n.", meaning: "家庭作业" },
+                    { word: "weekday", pos: "n.", meaning: "周工作日" },
+                    { word: "on weekdays", pos: "-", meaning: "在工作日" },
+                    { word: "usually", pos: "adv.", meaning: "通常地" },
+                    { word: "jog", pos: "n.", meaning: "慢跑" },
+                    { word: "a little", pos: "-", meaning: "一点，少量；少量的，一些" },
+                    { word: "myself", pos: "pron.", meaning: "我自己；亲自" },
+                    { word: "enjoy oneself", pos: "-", meaning: "玩得痛快，得到乐趣" },
+                    { word: "first", pos: "det., ord. num. & adv.", meaning: "第一；首先" },
+                    { word: "term", pos: "n.", meaning: "学期；期" },
+                    { word: "start", pos: "vi.", meaning: "(从…)开始" },
+                    { word: "start", pos: "vt. & vi.", meaning: "开始，着手" },
+                    { word: "writer", pos: "n.", meaning: "作家" },
+                    { word: "language", pos: "n.", meaning: "语言" },
+                    { word: "amazing", pos: "adj.", meaning: "令人大为惊奇的" },
+                    { word: "biology", pos: "n.", meaning: "生物学" },
+                    { word: "living", pos: "adj.", meaning: "活着的，活的" },
+                    { word: "nature", pos: "n.", meaning: "大自然；天性" },
+                    { word: "practise", pos: "vi. & vt.", meaning: "训练，练习" },
+                    { word: "field", pos: "n.", meaning: "田，地；领域" },
+                    { word: "trip", pos: "n.", meaning: "旅行" },
+                    { word: "field trip", pos: "n.", meaning: "野外考察，实地考察" },
+                    { word: "leave", pos: "vi. & vt.", meaning: "离开" },
+                    { word: "leave", pos: "vt.", meaning: "让...留在某处" },
+                    { word: "leave for", pos: "-", meaning: "动身去，到...地方去" },
+                    { word: "pick", pos: "vt.", meaning: "采，摘；挑选" },
+                    { word: "of course", pos: "-", meaning: "当然" },
+                    { word: "seldom", pos: "adv.", meaning: "很少" },
+                    { word: "tennis", pos: "n.", meaning: "网球运动" },
+                    { word: "roller skate", pos: "vi.", meaning: "滑旱冰，溜旱冰" },
+                    { word: "grow", pos: "vt. & vi.", meaning: "(使)生长，发育" },
+                    { word: "tour", pos: "n.", meaning: "参观；旅行" },
+                    { word: "website", pos: "n.", meaning: "网站" },
+                    { word: "video", pos: "n.", meaning: "视频" },
+                    { word: "outside", pos: "adv.", meaning: "在(向)外面" },
+                    { word: "peace", pos: "n.", meaning: "平静；和平" },
+                    { word: "quiet", pos: "n.", meaning: "宁静，平静" },
+                    { word: "teamwork", pos: "n.", meaning: "团队合作" },
+                    { word: "better", pos: "adj.", meaning: "更好的" },
+                    { word: "tiring", pos: "adj.", meaning: "累人的" },
+                    { word: "duty", pos: "n.", meaning: "职责，任务；责任，义务" },
+                    { word: "area", pos: "n.", meaning: "区域；面积；领域" },
+                    { word: "take part in", pos: "-", meaning: "参加" },
+                    { word: "through", pos: "prep.", meaning: "以，凭借；通过；穿过" },
+                    { word: "group", pos: "n.", meaning: "组，群，批" },
+                    { word: "turn", pos: "n.", meaning: "(依次轮到的)机会" },
+                    { word: "take turns", pos: "-", meaning: "轮流" },
+                    { word: "empty", pos: "vt.", meaning: "倒空，腾空" },
+                    { word: "bin", pos: "n.", meaning: "垃圾桶" },
+                    { word: "care", pos: "n.", meaning: "照顾；小心" },
+                    { word: "take care of", pos: "-", meaning: "照顾，照料" },
+                    { word: "something", pos: "pron.", meaning: "某事，某物" }
+                ]
+            },
+            5: {
+                name: "A healthy lifestyle",
+                words: [
+                    { word: "lifestyle", pos: "n.", meaning: "生活方式" },
+                    { word: "cucumber", pos: "n.", meaning: "黄瓜" },
+                    { word: "lemon", pos: "n.", meaning: "柠檬" },
+                    { word: "watermelon", pos: "n.", meaning: "西瓜" },
+                    { word: "pepper", pos: "n.", meaning: "甜椒；胡椒粉" },
+                    { word: "chocolate", pos: "n.", meaning: "巧克力" },
+                    { word: "beef", pos: "n.", meaning: "牛肉" },
+                    { word: "carrot", pos: "n.", meaning: "胡萝卜" },
+                    { word: "pork", pos: "n.", meaning: "猪肉" },
+                    { word: "sweet", pos: "n.", meaning: "糖果；甜食" },
+                    { word: "snack", pos: "n.", meaning: "点心，小吃" },
+                    { word: "health", pos: "n.", meaning: "健康" },
+                    { word: "delicious", pos: "adj.", meaning: "美味的" },
+                    { word: "important", pos: "adj.", meaning: "重要的" },
+                    { word: "diet", pos: "n.", meaning: "日常饮食" },
+                    { word: "without", pos: "prep.", meaning: "没有" },
+                    { word: "pancake", pos: "n.", meaning: "烙饼，薄饼" },
+                    { word: "tofu", pos: "n.", meaning: "豆腐" },
+                    { word: "sugar", pos: "n.", meaning: "食糖" },
+                    { word: "tooth", pos: "n. (pl. teeth)", meaning: "牙，齿" },
+                    { word: "homebody", pos: "n.", meaning: "喜欢待在家里的人" },
+                    { word: "mutton", pos: "n.", meaning: "羊肉" },
+                    { word: "sweet", pos: "adj.", meaning: "甜的；可爱的" },
+                    { word: "have a sweet tooth", pos: "-", meaning: "爱吃甜食" },
+                    { word: "stay", pos: "vi.", meaning: "停留，逗留" },
+                    { word: "stay up", pos: "-", meaning: "熬夜" },
+                    { word: "unhealthy", pos: "adj.", meaning: "不健康的" },
+                    { word: "need", pos: "vt.", meaning: "需要" },
+                    { word: "enough", pos: "det. & pron.", meaning: "足够(的)" },
+                    { word: "enough", pos: "adv.", meaning: "足够地；相当" },
+                    { word: "less", pos: "det. & pron.", meaning: "较少的，更少的" },
+                    { word: "less", pos: "adv.", meaning: "少，较少" },
+                    { word: "cheese", pos: "n.", meaning: "奶酪" },
+                    { word: "piece", pos: "n.", meaning: "块，片；(文艺作品等的)一篇" },
+                    { word: "bowl", pos: "n.", meaning: "一碗(的量)；碗" },
+                    { word: "salt", pos: "n.", meaning: "盐" },
+                    { word: "packet", pos: "n.", meaning: "小袋；小包装纸袋" },
+                    { word: "kilo", pos: "n.", meaning: "千克，公斤" },
+                    { word: "carton", pos: "n.", meaning: "硬纸盒，塑料盒" },
+                    { word: "bottle", pos: "n.", meaning: "一瓶(的量)；瓶子" },
+                    { word: "maybe", pos: "adv.", meaning: "也许；大概" },
+                    { word: "than", pos: "prep. & conj.", meaning: "比" },
+                    { word: "almost", pos: "adv.", meaning: "几乎" },
+                    { word: "chip", pos: "n.", meaning: "炸薯条；炸薯片" },
+                    { word: "smartphone", pos: "n.", meaning: "智能手机" },
+                    { word: "tablet", pos: "n.", meaning: "平板电脑" },
+                    { word: "score", pos: "n.", meaning: "分数，成绩；比分" },
+                    { word: "point", pos: "n.", meaning: "得分；要点；观点；地点" },
+                    { word: "change", pos: "n.", meaning: "改变，变化" },
+                    { word: "meal", pos: "n.", meaning: "一餐所吃的食物；一顿饭" },
+                    { word: "porridge", pos: "n.", meaning: "粥；麦片粥" },
+                    { word: "whole", pos: "adj.", meaning: "全部的；整个的" },
+                    { word: "miss", pos: "vt.", meaning: "错过" },
+                    { word: "rest", pos: "n.", meaning: "休息时间" },
+                    { word: "pie", pos: "n.", meaning: "馅饼" },
+                    { word: "yogurt", pos: "n.", meaning: "酸奶" },
+                    { word: "most", pos: "det. & pron.", meaning: "大多数，几乎所有" },
+                    { word: "most", pos: "adv.", meaning: "最大，最多" }
+                ]
+            },
+            6: {
+                name: "My clothes, my style",
+                words: [
+                    { word: "style", pos: "n.", meaning: "样式；方式，作风" },
+                    { word: "blouse", pos: "n.", meaning: "女式衬衫" },
+                    { word: "jacket", pos: "n.", meaning: "夹克衫" },
+                    { word: "jeans", pos: "n.", meaning: "牛仔裤" },
+                    { word: "scarf", pos: "n.", meaning: "围巾" },
+                    { word: "tie", pos: "n.", meaning: "领带" },
+                    { word: "T-shirt", pos: "n.", meaning: "T恤衫" },
+                    { word: "calm", pos: "adj.", meaning: "镇静的，沉着的" },
+                    { word: "fashion", pos: "n.", meaning: "时装业；流行" },
+                    { word: "choose", pos: "vt. & vi.", meaning: "选择" },
+                    { word: "could", pos: "modal v.", meaning: "(礼貌地请求或征询许可)能，可以" },
+                    { word: "advice", pos: "n.", meaning: "建议" },
+                    { word: "depend", pos: "vi.", meaning: "取决于" },
+                    { word: "depend on", pos: "-", meaning: "取决于；依靠" },
+                    { word: "skin", pos: "n.", meaning: "皮肤" },
+                    { word: "such as", pos: "-", meaning: "例如；诸如…之类" },
+                    { word: "purple", pos: "n.", meaning: "紫色" },
+                    { word: "similar", pos: "adj.", meaning: "相似的" },
+                    { word: "example", pos: "n.", meaning: "例子" },
+                    { word: "for example", pos: "-", meaning: "例如" },
+                    { word: "dark", pos: "adj.", meaning: "深色的；黑暗的" },
+                    { word: "mix", pos: "vt. & vi.", meaning: "混合" },
+                    { word: "stand out", pos: "-", meaning: "突出，显眼" },
+                    { word: "match", pos: "vt. & vi.", meaning: "般配，相配" },
+                    { word: "suitable", pos: "adj.", meaning: "合适的，适宜的" },
+                    { word: "formal", pos: "adj.", meaning: "适合正式场合的；庄重的" },
+                    { word: "suit", pos: "n.", meaning: "套装，西服" },
+                    { word: "casual", pos: "adj.", meaning: "非正式的，随便的" },
+                    { word: "comfortable", pos: "adj.", meaning: "舒适的" },
+                    { word: "primary", pos: "adj.", meaning: "初等教育的，小学教育的" },
+                    { word: "smart", pos: "adj.", meaning: "衣冠楚楚的，衣着讲究的" },
+                    { word: "date", pos: "n.", meaning: "日期" },
+                    { word: "traditional", pos: "adj.", meaning: "传统的" },
+                    { word: "popular", pos: "adj.", meaning: "广受欢迎的；流行的" },
+                    { word: "type", pos: "n.", meaning: "类型，种类" },
+                    { word: "design", pos: "n.", meaning: "设计" },
+                    { word: "festival", pos: "n.", meaning: "节日；节" },
+                    { word: "wedding", pos: "n.", meaning: "婚礼" },
+                    { word: "just", pos: "adv.", meaning: "仅仅，只不过；正好" },
+                    { word: "culture", pos: "n.", meaning: "文化" },
+                    { word: "country", pos: "n.", meaning: "国家" },
+                    { word: "history", pos: "n.", meaning: "历史" },
+                    { word: "loose", pos: "adj.", meaning: "宽松的" },
+                    { word: "belt", pos: "n.", meaning: "腰带，皮带" },
+                    { word: "close-fitting", pos: "adj.", meaning: "紧身的" },
+                    { word: "be made of", pos: "-", meaning: "由…制成" },
+                    { word: "silk", pos: "n.", meaning: "丝绸" },
+                    { word: "feel", pos: "linking v.", meaning: "摸起来" },
+                    { word: "smooth", pos: "adj.", meaning: "光滑的" },
+                    { word: "soft", pos: "adj.", meaning: "软的，柔软的" },
+                    { word: "cotton", pos: "n.", meaning: "棉织物，棉布；棉花" },
+                    { word: "agree", pos: "vi. & vt.", meaning: "同意" },
+                    { word: "feature", pos: "n.", meaning: "特点，特色" },
+                    { word: "material", pos: "n.", meaning: "布料；材料，原料" },
+                    { word: "leather", pos: "n.", meaning: "皮革" },
+                    { word: "size", pos: "n.", meaning: "尺码；大小" }
+                ]
+            },
+            7: {
+                name: "Be wise with money",
+                words: [
+                    { word: "wise", pos: "adj.", meaning: "明智的" },
+                    { word: "yuan", pos: "n. (pl. yuan)", meaning: "元（中国货币单位）" },
+                    { word: "euro", pos: "n.", meaning: "欧元" },
+                    { word: "pound", pos: "n.", meaning: "英镑（英国货币单位）" },
+                    { word: "yen", pos: "n. (pl. yen)", meaning: "日元（日本货币单位）" },
+                    { word: "rouble", pos: "n.", meaning: "卢布（俄罗斯货币单位）" },
+                    { word: "dollar", pos: "n.", meaning: "元（美国、加拿大等国的货币单位）" },
+                    { word: "key", pos: "n.", meaning: "钥匙" },
+                    { word: "ring", pos: "n.", meaning: "环状物，圈形的东西" },
+                    { word: "baseball", pos: "n.", meaning: "棒球运动；棒球" },
+                    { word: "Russian", pos: "adj.", meaning: "俄罗斯(人)的，俄语的" },
+                    { word: "set", pos: "n.", meaning: "一套，一副，一组(类似的东西)" },
+                    { word: "a set of", pos: "-", meaning: "一套，一副，一组" },
+                    { word: "inside", pos: "prep.", meaning: "在(向)…里面" },
+                    { word: "another", pos: "pron. & det.", meaning: "另一，又一" },
+                    { word: "colourful", pos: "adj.", meaning: "五彩缤纷的；丰富多彩的" },
+                    { word: "surprise", pos: "n.", meaning: "令人惊奇的事情(或消息等)" },
+                    { word: "player", pos: "n.", meaning: "运动员" },
+                    { word: "protect", pos: "vt. & vi.", meaning: "保护，防护" },
+                    { word: "mall", pos: "n.", meaning: "购物商场" },
+                    { word: "across", pos: "prep.", meaning: "在…对面；从…一边到另一边" },
+                    { word: "cost", pos: "vt.", meaning: "需付费，价钱为" },
+                    { word: "manage", pos: "vt.", meaning: "明智地使用；管理" },
+                    { word: "budget", pos: "n.", meaning: "预算" },
+                    { word: "cover", pos: "vt.", meaning: "足以支付，够付；覆盖" },
+                    { word: "education", pos: "n.", meaning: "教育" },
+                    { word: "pay", pos: "vi. & vt.", meaning: "付款" },
+                    { word: "pay for", pos: "-", meaning: "支付" },
+                    { word: "flat", pos: "n.", meaning: "〈英〉公寓" },
+                    { word: "daily", pos: "adj.", meaning: "每日的" },
+                    { word: "need", pos: "n.", meaning: "需要的事物；需要" },
+                    { word: "per cent", pos: "n.", meaning: "百分之…" },
+                    { word: "expensive", pos: "adj.", meaning: "昂贵的" },
+                    { word: "save", pos: "vt. & vi.", meaning: "储蓄；节省" },
+                    { word: "bank", pos: "n.", meaning: "银行" },
+                    { word: "account", pos: "n.", meaning: "账户" },
+                    { word: "rainy", pos: "adj.", meaning: "阴雨的" },
+                    { word: "matter", pos: "vi.", meaning: "要紧，有重大影响" },
+                    { word: "pocket", pos: "n.", meaning: "口袋" },
+                    { word: "pocket money", pos: "n.", meaning: "零花钱" },
+                    { word: "notebook", pos: "n.", meaning: "笔记本" },
+                    { word: "rest", pos: "n.", meaning: "剩余部分；其他" },
+                    { word: "strawberry", pos: "n.", meaning: "草莓" },
+                    { word: "bookshop", pos: "n.", meaning: "书店" },
+                    { word: "eraser", pos: "n.", meaning: "〈美〉橡皮" },
+                    { word: "as", pos: "prep.", meaning: "作为，当作" },
+                    { word: "present", pos: "n.", meaning: "礼物" },
+                    { word: "away", pos: "adv.", meaning: "(时间或空间上)离开" },
+                    { word: "shell", pos: "n.", meaning: "壳；骨架" },
+                    { word: "deal", pos: "n.", meaning: "交易" },
+                    { word: "coin", pos: "n.", meaning: "硬币" },
+                    { word: "online", pos: "adv.", meaning: "在线上，在网上" },
+                    { word: "lucky", pos: "adj.", meaning: "带来好运的；幸运的" },
+                    { word: "lucky money", pos: "n.", meaning: "压岁钱" },
+                    { word: "grandparent", pos: "n.", meaning: "(外)祖父，(外)祖母" },
+                    { word: "relative", pos: "n.", meaning: "亲戚" },
+                    { word: "send", pos: "vt.", meaning: "发送" },
+                    { word: "online", pos: "adj.", meaning: "线上的，网上的" },
+                    { word: "red packet", pos: "n.", meaning: "红包" },
+                    { word: "survey", pos: "n.", meaning: "民意调查；概述" },
+                    { word: "in need", pos: "-", meaning: "在贫困中，在困难中" },
+                    { word: "as", pos: "conj.", meaning: "正如，如同" },
+                    { word: "beginning", pos: "n.", meaning: "开头，开端" },
+                    { word: "habit", pos: "n.", meaning: "习惯" }
+                ]
+            },
+            8: {
+                name: "Let's celebrate!",
+                words: [
+                    { word: "celebrate", pos: "vi. & vt.", meaning: "庆祝" },
+                    { word: "Christmas", pos: "n.", meaning: "圣诞节" },
+                    { word: "remember", pos: "vt.", meaning: "纪念；记住" },
+                    { word: "poet", pos: "n.", meaning: "诗人" },
+                    { word: "dragon", pos: "n.", meaning: "龙" },
+                    { word: "dragon boat", pos: "n.", meaning: "龙舟" },
+                    { word: "race", pos: "n.", meaning: "速度竞赛，赛跑" },
+                    { word: "dumpling", pos: "n.", meaning: "汤团，饺子" },
+                    { word: "rice dumpling", pos: "n.", meaning: "粽子" },
+                    { word: "Scottish", pos: "adj.", meaning: "苏格兰(人)的" },
+                    { word: "haggis", pos: "n.", meaning: "哈吉斯(一种苏格兰美食)" },
+                    { word: "dish", pos: "n.", meaning: "一道菜，菜肴" },
+                    { word: "poem", pos: "n.", meaning: "诗，韵文" },
+                    { word: "lady", pos: "n.", meaning: "女士；淑女" },
+                    { word: "gentleman", pos: "n. (pl. gentlemen)", meaning: "先生；绅士" },
+                    { word: "spread", pos: "vt.", meaning: "使分散" },
+                    { word: "spread", pos: "vi. & vt.", meaning: "传播" },
+                    { word: "doorstep", pos: "n.", meaning: "门阶" },
+                    { word: "hang", pos: "vt. & vi.", meaning: "悬挂" },
+                    { word: "onion", pos: "n.", meaning: "洋葱" },
+                    { word: "Greek", pos: "adj.", meaning: "希腊(人)的，希腊语的" },
+                    { word: "tradition", pos: "n.", meaning: "传统" },
+                    { word: "symbol", pos: "n.", meaning: "象征；符号" },
+                    { word: "midnight", pos: "n.", meaning: "午夜" },
+                    { word: "strike", pos: "vt. & vi.", meaning: "敲，鸣，报时；撞击" },
+                    { word: "into", pos: "prep.", meaning: "进入，到…里面" },
+                    { word: "hope", pos: "n.", meaning: "希望" },
+                    { word: "in the hope of", pos: "-", meaning: "希望" },
+                    { word: "ahead", pos: "adv.", meaning: "在前面，向前" },
+                    { word: "carry", pos: "vt.", meaning: "拿，提，搬；携带" },
+                    { word: "suitcase", pos: "n.", meaning: "(旅行用的) 手提箱" },
+                    { word: "block", pos: "n.", meaning: "街区" },
+                    { word: "traveller", pos: "n.", meaning: "旅行者，游客" },
+                    { word: "wherever", pos: "conj.", meaning: "在任何地方" },
+                    { word: "violin", pos: "n.", meaning: "小提琴" },
+                    { word: "lively", pos: "adj.", meaning: "轻快的；生气勃勃的" },
+                    { word: "spring roll", pos: "n.", meaning: "春卷" },
+                    { word: "moment", pos: "n.", meaning: "某个时刻；瞬间，片刻" },
+                    { word: "at the moment", pos: "-", meaning: "现在，当时" },
+                    { word: "tonight", pos: "adv.", meaning: "在今晚" },
+                    { word: "lantern", pos: "n.", meaning: "灯笼" },
+                    { word: "mountain", pos: "n.", meaning: "高山，山岳" },
+                    { word: "climb", pos: "vt. & vi.", meaning: "攀登，爬" },
+                    { word: "natural", pos: "adj.", meaning: "自然的" },
+                    { word: "beauty", pos: "n.", meaning: "美；美人" },
+                    { word: "respect", pos: "n.", meaning: "尊敬" },
+                    { word: "elder", pos: "n.", meaning: "长者，长辈" },
+                    { word: "double", pos: "adj.", meaning: "双的；两倍的" },
+                    { word: "forever", pos: "adv.", meaning: "永远" },
+                    { word: "decorate", pos: "vt.", meaning: "装饰" },
+                    { word: "put up", pos: "-", meaning: "张贴，挂起" },
+                    { word: "Spring Festival couplets", pos: "n.", meaning: "春联" },
+                    { word: "beforehand", pos: "adv.", meaning: "事先，预先" },
+                    { word: "prepare", pos: "vt.", meaning: "预备（饭菜）；把…预备好" },
+                    { word: "meaning", pos: "n.", meaning: "意义，意思" },
+                    { word: "during", pos: "prep.", meaning: "在…期间" },
+                    { word: "last", pos: "vi.", meaning: "持续" },
+                    { word: "till", pos: "prep. & conj.", meaning: "到…时，直到…为止" },
+                    { word: "heart", pos: "n.", meaning: "内心；心脏" }
+                ]
+            }
+        }
+    };
+
+    // ==========================================
+    // 2. 状态管理
+    // ==========================================
+    let state = {
+        currentUnit: 1,
+        currentLevel: 'level1',
+        currentWordIndex: 0,
+        score: 0,
+        total: 0,
+        isGameOver: false,
+        unmasteredList: JSON.parse(localStorage.getItem('cute_unmastered')) || [],
+        sessionWords: [],
+        unitData: [],
+        pendingAnswer: null
+    };
+
+    const POS_OPTIONS = ['n.', 'vt.', 'vi.', 'adj.', 'adv.', 'pron.', 'prep.', 'conj.', 'linking v.', 'abbr.', 'num.', 'det.', 'modal v.'];
+
+    // ==========================================
+    // 3. 核心功能
+    // ==========================================
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active-screen'));
+        document.getElementById(id).classList.add('active-screen');
+    }
+
+    function initUnits() {
+        const grid = document.getElementById('unit-grid');
+        grid.innerHTML = '';
+        for(let i=1; i<=8; i++) {
+            const unit = db.units[i];
+            const div = document.createElement('div');
+            div.className = 'unit-card';
+            const emojis = ['🌸', '🎈', '📚', '✏️', '🧸', '👗', '💰', '🎉'];
+            div.innerHTML = `
+                <div class="icon">${emojis[i-1]}</div>
+                <h3 style="margin: 10px 0; color: #c71585;">Unit ${i}</h3>
+                <p style="font-size: 0.8rem; margin:0;">${unit.name}</p>
+            `;
+            div.onclick = () => {
+                state.currentUnit = i;
+                showScreen('screen-levels');
+                initLevels();
+            };
+            grid.appendChild(div);
+        }
+        
+        // 如果有关联复习项目，标记出来
+        if(state.unmasteredList.length > 0) {
+            const notification = document.getElementById('review-notification');
+            notification.innerHTML = `📕 你有 ${state.unmasteredList.length} 个单词需要复习哦！`;
+            notification.style.display = 'block';
+            document.getElementById('screen-menu').prepend(notification);
+        }
+    }
+
+    function initLevels() {
+        const unit = db.units[state.currentUnit];
+        document.getElementById('level-unit-title').textContent = `🌸 Unit ${state.currentUnit} · ${unit.name}`;
+        document.getElementById('level-word-count').textContent = `📖 本单元共 ${unit.words.length} 个单词`;
+
+        const l1 = localStorage.getItem(`unit_${state.currentUnit}_level1_done`);
+        const l2 = localStorage.getItem(`unit_${state.currentUnit}_level2_done`);
+
+        const levels = [
+            { id: 'level1', label: '🌱 级别一：认读 + 拼写', unlocked: true },
+            { id: 'level2', label: '🌿 级别二：词性大挑战', unlocked: l1 === 'true' },
+            { id: 'level3', label: '🌳 级别三：中文释义对战', unlocked: l2 === 'true' }
+        ];
+
+        const grid = document.getElementById('level-grid');
+        grid.innerHTML = '';
+        levels.forEach(lv => {
+            const div = document.createElement('div');
+            div.className = 'unit-card';
+            if(!lv.unlocked) div.classList.add('locked');
+            div.innerHTML = `<h3>${lv.label}</h3>`;
+            if(lv.unlocked) {
+                div.onclick = () => {
+                    state.currentLevel = lv.id;
+                    startGame();
+                };
+            } else {
+                div.innerHTML += `<p style="font-size:0.8rem; color:#ff6b6b;">🔒 需要完成上一级别</p>`;
+            }
+            grid.appendChild(div);
+        });
+    }
+
+    function startGame() {
+        showScreen('screen-game');
+        const unit = db.units[state.currentUnit];
+        state.sessionWords = shuffle([...unit.words]);
+        state.currentWordIndex = 0;
+        state.score = 0;
+        state.total = 0;
+        state.isGameOver = false;
+        document.getElementById('btn-unmastered').style.display = 'block';
+        document.getElementById('game-result').style.display = 'none';
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if(state.currentWordIndex >= state.sessionWords.length) {
+            finishGame();
+            return;
+        }
+
+        const wordObj = state.sessionWords[state.currentWordIndex];
+        document.getElementById('game-progress-text').textContent = `${state.currentWordIndex+1} / ${state.sessionWords.length}`;
+        document.getElementById('game-progress-fill').style.width = `${((state.currentWordIndex+1) / state.sessionWords.length) * 100}%`;
+        document.getElementById('game-score-text').textContent = `✅ ${state.score}`;
+
+        const content = document.getElementById('game-content');
+        const heading = document.getElementById('game-heading');
+        const instruction = document.getElementById('game-instruction');
+
+        let html = `<div style="font-size: 2rem; text-align: center; margin: 20px 0; background: #f0f8ff; padding: 20px; border-radius: 30px;">${wordObj.word}</div>`;
+
+        if(state.currentLevel === 'level1') {
+            heading.textContent = '🎧 听单词，拼出来';
+            instruction.textContent = '点击喇叭听发音，然后输入拼写。';
+            html += `
+                <div style="text-align: center; margin-top: -15px;">
+                    <button class="btn btn-small btn-secondary" onclick="speakText('${wordObj.word}')" style="width: auto; background: #87ceeb; box-shadow: 0 4px 0 #4682b4;">🔊 播放读音</button>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="game-input" placeholder="输入英文单词..." autofocus>
+                </div>
+            `;
+            content.innerHTML = html;
+
+        } else if(state.currentLevel === 'level2') {
+            heading.textContent = '📝 请选择正确的词性';
+            instruction.textContent = `【 ${wordObj.word} 】的词性是？`;
+            const correct = wordObj.pos || '短语';
+            let options = [correct];
+            // 找不同的干扰项
+            const availablePOS = POS_OPTIONS.filter(p => p !== correct);
+            while(options.length < 4) {
+                let rand = availablePOS[Math.floor(Math.random() * availablePOS.length)];
+                if(!options.includes(rand)) options.push(rand);
+            }
+            options = shuffle(options);
+            html += `
+                <div class="options-grid" id="choice-grid">
+                    ${options.map((o, idx) => `<div class="option-btn" data-pos="${o}" onclick="selectOption(this, '${o}', '${correct}')">${o}</div>`).join('')}
+                </div>
+            `;
+            content.innerHTML = html;
+
+        } else if(state.currentLevel === 'level3') {
+            heading.textContent = '📖 这个单词是什么意思？';
+            instruction.textContent = `【 ${wordObj.word} 】的中文含义是？`;
+            const correct = wordObj.meaning;
+            // 找不同的干扰项
+            let options = [correct];
+            let pool = db.units[state.currentUnit].words.map(w => w.meaning);
+            while(options.length < 4) {
+                let rand = pool[Math.floor(Math.random() * pool.length)];
+                if(!options.includes(rand)) options.push(rand);
+            }
+            options = shuffle(options);
+            html += `
+                <div class="options-grid" id="choice-grid">
+                    ${options.map((o, idx) => `<div class="option-btn" data-meaning="${o}" onclick="selectOption(this, '${o}', '${correct}')">${o}</div>`).join('')}
+                </div>
+            `;
+            content.innerHTML = html;
+        }
+    }
+
+    function selectOption(el, selected, correct) {
+        if(el.classList.contains('correct') || state.isGameOver) return;
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.style.pointerEvents = 'none');
+        
+        if(selected === correct) {
+            el.classList.add('correct');
+            state.score++;
+            state.total++;
+            setTimeout(nextQuestion, 800);
+        } else {
+            el.classList.add('wrong');
+            btns.forEach(b => { if(b.textContent === correct) b.classList.add('correct'); });
+            state.total++;
+            setTimeout(nextQuestion, 1500);
+        }
+    }
+
+    function submitAnswer() {
+        if(state.currentLevel === 'level1' && !state.isGameOver) {
+            const input = document.getElementById('game-input');
+            if(!input || !input.value) return alert("✨ 先输入拼写再提交哦！");
+            const wordObj = state.sessionWords[state.currentWordIndex];
+            const ans = input.value.trim().toLowerCase();
+            const correct = wordObj.word.toLowerCase();
+            
+            if(ans === correct) {
+                state.score++;
+                state.total++;
+                input.style.borderColor = '#98fb98';
+                setTimeout(nextQuestion, 800);
+            } else {
+                state.total++;
+                input.style.borderColor = '#ff6b6b';
+                setTimeout(nextQuestion, 1500);
+            }
+        }
+    }
+
+    function nextQuestion() {
+        state.currentWordIndex++;
+        renderQuestion();
+    }
+
+    function finishGame() {
+        state.isGameOver = true;
+        document.getElementById('btn-unmastered').style.display = 'none';
+        const progress = document.getElementById('game-progress-fill');
+        progress.style.width = '100%';
+        document.getElementById('game-progress-text').textContent = `完成！`;
+
+        const unitStr = `unit_${state.currentUnit}_${state.currentLevel}_done`;
+        localStorage.setItem(unitStr, 'true');
+
+        const content = document.getElementById('game-content');
+        const heading = document.getElementById('game-heading');
+        heading.textContent = '🎉 闯关成功！';
+        
+        let html = `
+            <div style="text-align: center; background: #f0f8ff; border-radius: 30px; padding: 20px;">
+                <span style="font-size: 3rem;">🌻</span>
+                <p style="font-size: 1.2rem; font-weight: bold;">答对 ${state.score} 题，共 ${state.total} 题</p>
+            </div>
+            <div class="btn-gold btn" onclick="showScreen('screen-levels')" style="width: auto; margin-top: 20px;">🔄 返回级别选择</div>
+        `;
+        content.innerHTML = html;
+    }
+
+    // 未掌握机制：艾宾浩斯复习清单
+    function markUnmastered() {
+        if(state.isGameOver || state.currentWordIndex >= state.sessionWords.length) return;
+        const wordObj = state.sessionWords[state.currentWordIndex];
+        if(!state.unmasteredList.find(w => w.word === wordObj.word)) {
+            state.unmasteredList.push(wordObj);
+            localStorage.setItem('cute_unmastered', JSON.stringify(state.unmasteredList));
+        }
+        alert(`📕 已将 "${wordObj.word}" 加入“未掌握”复习清单！系统将根据艾宾浩斯曲线提醒您。`);
+        state.currentWordIndex++;
+        renderQuestion();
+    }
+
+    function startReview() {
+        if(state.unmasteredList.length === 0) {
+            alert("🎉 恭喜！你的“未掌握”清单目前是空的！");
+            return;
+        }
+        state.currentLevel = 'level1';
+        state.sessionWords = shuffle([...state.unmasteredList]);
+        state.currentWordIndex = 0;
+        state.score = 0;
+        state.total = 0;
+        state.isGameOver = false;
+        showScreen('screen-game');
+        document.getElementById('btn-unmastered').style.display = 'none';
+        document.getElementById('review-notification').innerHTML = `📖 复习模式进行中，共 ${state.sessionWords.length} 个未掌握单词。答对会自动移出清单。`;
+        document.getElementById('review-notification').style.display = 'block';
+        renderQuestion();
+    }
+
+    // 自然拼读 API (TTS)
+    function speakText(text) {
+        if(!window.speechSynthesis) return alert("⚠️ 您的浏览器不支持语音合成");
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // 监听回车键
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const input = document.getElementById('game-input');
+            if(input && document.getElementById('screen-game').classList.contains('active-screen')) {
+                submitAnswer();
+            }
+        }
+    });
+
+    // 启动应用
+    initUnits();
+</script>
+</body>
+</html>
